@@ -19,6 +19,9 @@
             <DataTemplate DataType="{x:Type vm:WebReconViewModel}">
                 <views:WebReconView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:TrafficViewModel}">
+                <views:TrafficView/>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
                 <views:PlaceholderView/>
             </DataTemplate>

@@ -4,12 +4,14 @@ using Rabits.Application.Abstractions;
 using Rabits.Application.Hosts;
 using Rabits.Application.Recon;
 using Rabits.Application.Security;
+using Rabits.Application.Traffic;
 using Rabits.Application.Wireless;
 using Rabits.Infrastructure.Auditing;
 using Rabits.Infrastructure.Engagement;
 using Rabits.Infrastructure.Hosts;
 using Rabits.Infrastructure.Recon;
 using Rabits.Infrastructure.Runtime;
+using Rabits.Infrastructure.Traffic;
 using Rabits.Infrastructure.Wireless;
 
 namespace Rabits.Infrastructure.DependencyInjection;
@@ -44,6 +46,7 @@ public static class ServiceCollectionExtensions
         RegisterWirelessScanner(services, options);
         RegisterHostDiscovery(services, options);
         RegisterWebRecon(services, options);
+        RegisterTrafficCapture(services, options);
 
         // Use cases.
         services.AddTransient<ScanWirelessNetworksHandler>();
@@ -52,8 +55,20 @@ public static class ServiceCollectionExtensions
         services.AddTransient<WhoisHandler>();
         services.AddTransient<EnumerateSubdomainsHandler>();
         services.AddTransient<InspectWebEndpointHandler>();
+        services.AddSingleton<CaptureTrafficHandler>();
 
         return services;
+    }
+
+    private static void RegisterTrafficCapture(IServiceCollection services, RabitsOptions options)
+    {
+        if (options.ForceSimulatedCapture || !SharpPcapTrafficCapture.IsAvailable())
+        {
+            services.AddSingleton<ITrafficCapture, SimulatedTrafficCapture>();
+            return;
+        }
+
+        services.AddSingleton<ITrafficCapture, SharpPcapTrafficCapture>();
     }
 
     private static void RegisterWebRecon(IServiceCollection services, RabitsOptions options)

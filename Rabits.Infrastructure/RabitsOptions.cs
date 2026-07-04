@@ -41,4 +41,7 @@ public sealed class RabitsOptions
 
     /// <summary>Optional external subdomain wordlist (one label per line) replacing the embedded set.</summary>
     public string? SubdomainWordlistPath { get; set; }
+
+    /// <summary>Force the synthetic traffic generator instead of real capture (demos/tests/no Npcap).</summary>
+    public bool ForceSimulatedCapture { get; set; }
 }

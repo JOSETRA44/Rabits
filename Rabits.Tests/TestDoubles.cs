@@ -1,10 +1,13 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using Rabits.Application.Abstractions;
+using Rabits.Application.Traffic;
 using Rabits.Domain.Auditing;
 using Rabits.Domain.Engagement;
 using Rabits.Domain.Networking;
 using Rabits.Domain.Operations;
 using Rabits.Domain.Recon;
+using Rabits.Domain.Traffic;
 
 namespace Rabits.Tests;
 
@@ -122,4 +125,54 @@ internal sealed class FakeWebProbe : IWebProbe
     public FakeWebProbe(WebEndpointInfo info) => _info = info;
     public Task<WebEndpointInfo> InspectAsync(Uri url, CancellationToken cancellationToken = default)
         => Task.FromResult(_info);
+}
+
+internal static class TestPackets
+{
+    public static CapturedPacket Make(TrafficProtocol protocol, int length = 100) => new()
+    {
+        Timestamp = DateTimeOffset.UnixEpoch,
+        Length = length,
+        Protocol = protocol,
+        Source = "10.0.0.1",
+        Destination = "10.0.0.2",
+    };
+}
+
+/// <summary>Yields a fixed, finite set of packets then completes.</summary>
+internal sealed class FakeTrafficCapture : ITrafficCapture
+{
+    private readonly IReadOnlyList<CapturedPacket> _packets;
+    public FakeTrafficCapture(params CapturedPacket[] packets) => _packets = packets;
+
+    public bool IsSupported => true;
+    public IReadOnlyList<CaptureDevice> ListDevices() => new[] { new CaptureDevice("fake", "Fake", "Fake device") };
+
+    public async IAsyncEnumerable<CapturedPacket> CaptureAsync(
+        CaptureRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        foreach (var packet in _packets)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return packet;
+            await Task.Yield();
+        }
+    }
+}
+
+/// <summary>Yields packets forever until cancelled — for testing streaming and stop behaviour.</summary>
+internal sealed class LoopingTrafficCapture : ITrafficCapture
+{
+    public bool IsSupported => true;
+    public IReadOnlyList<CaptureDevice> ListDevices() => new[] { new CaptureDevice("loop", "Loop", "Looping device") };
+
+    public async IAsyncEnumerable<CapturedPacket> CaptureAsync(
+        CaptureRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            yield return TestPackets.Make(TrafficProtocol.Tcp);
+            await Task.Delay(1, cancellationToken);
+        }
+    }
 }

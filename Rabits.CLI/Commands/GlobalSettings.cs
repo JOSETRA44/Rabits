@@ -20,4 +20,8 @@ public class GlobalSettings : CommandSettings
     [CommandOption("--fake")]
     [Description("Use the built-in sample scanner instead of the real adapter.")]
     public bool Fake { get; init; }
+
+    [CommandOption("--simulate")]
+    [Description("Use the synthetic traffic generator instead of real capture.")]
+    public bool Simulate { get; init; }
 }

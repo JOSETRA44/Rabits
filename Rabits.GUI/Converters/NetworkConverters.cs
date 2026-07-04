@@ -2,8 +2,41 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 using Rabits.Domain.Networking;
+using Rabits.Domain.Traffic;
 
 namespace Rabits.GUI.Converters;
+
+/// <summary>Negates a boolean (e.g. enable a control only while not capturing).</summary>
+public sealed class BoolInverter : IValueConverter
+{
+    public static readonly BoolInverter Instance = new();
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture) => value is not true;
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture) => value is not true;
+}
+
+/// <summary>Colours a captured packet's protocol for the live traffic grid.</summary>
+public sealed class TrafficProtocolToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var colour = value is TrafficProtocol p
+            ? p switch
+            {
+                TrafficProtocol.Tcp => "#3FB950",
+                TrafficProtocol.Udp => "#D29922",
+                TrafficProtocol.Dns => "#2F81F7",
+                TrafficProtocol.Icmp => "#DB61A2",
+                TrafficProtocol.IcmpV6 => "#DB61A2",
+                TrafficProtocol.Arp => "#8B949E",
+                _ => "#8B949E",
+            }
+            : "#8B949E";
+        return new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour));
+    }
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
 
 /// <summary>Maps an <see cref="EncryptionType"/> to a status colour (open = danger, WPA3 = success).</summary>
 public sealed class EncryptionToBrushConverter : IValueConverter
