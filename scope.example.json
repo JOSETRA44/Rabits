@@ -1,0 +1,13 @@
+{
+  "name": "ACME Q3 Internal Assessment",
+  "startsAt": "2026-07-01T00:00:00Z",
+  "endsAt": "2026-07-31T23:59:59Z",
+  "maxRequestsPerSecond": 10,
+  "maxClassification": "Active",
+  "rules": [
+    { "type": "Cidr",   "pattern": "10.0.0.0/24" },
+    { "type": "Cidr",   "pattern": "192.168.50.0/24" },
+    { "type": "Domain", "pattern": "*.acme-lab.internal" },
+    { "type": "Ssid",   "pattern": "ACME-CORP" }
+  ]
+}

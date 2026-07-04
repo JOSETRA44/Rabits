@@ -1,0 +1,21 @@
+<Application x:Class="Rabits.GUI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Rabits.GUI.ViewModels"
+             xmlns:views="clr-namespace:Rabits.GUI.Views">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Theme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Map view models to their views for the shell's ContentControl. -->
+            <DataTemplate DataType="{x:Type vm:WifiViewModel}">
+                <views:WifiView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
+                <views:PlaceholderView/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
