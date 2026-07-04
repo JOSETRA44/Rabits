@@ -34,6 +34,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<WebReconViewModel>();
         services.AddSingleton<TrafficViewModel>();
         services.AddSingleton<AttackViewModel>();
+        services.AddSingleton<DynamicAnalysisViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
 

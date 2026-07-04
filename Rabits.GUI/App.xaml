@@ -25,6 +25,9 @@
             <DataTemplate DataType="{x:Type vm:AttackViewModel}">
                 <views:AttackView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:DynamicAnalysisViewModel}">
+                <views:DynamicAnalysisView/>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
                 <views:PlaceholderView/>
             </DataTemplate>

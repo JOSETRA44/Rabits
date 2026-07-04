@@ -44,6 +44,7 @@ app.Configure(config =>
         web.AddCommand<WebWhoisCommand>("whois").WithDescription("Passive WHOIS lookup.");
         web.AddCommand<WebSubdomainsCommand>("subdomains").WithDescription("Passive subdomain enumeration.");
         web.AddCommand<WebHeadersCommand>("headers").WithDescription("Active HTTP/TLS + security-header audit.");
+        web.AddCommand<WebSecretsCommand>("secrets").WithDescription("Static secret hunting over a page and its scripts.");
     });
     config.AddBranch("traffic", traffic =>
     {

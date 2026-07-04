@@ -3,6 +3,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using Rabits.Domain.Auth;
 using Rabits.Domain.Networking;
+using Rabits.Domain.Recon;
 using Rabits.Domain.Traffic;
 
 namespace Rabits.GUI.Converters;
@@ -22,6 +23,37 @@ public sealed class AuthResultToBrushConverter : IValueConverter
             : "#6E7681";
         return new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour));
     }
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>Colours a security/secret severity.</summary>
+public sealed class SeverityToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var colour = value is SecurityFindingSeverity s
+            ? s switch
+            {
+                SecurityFindingSeverity.High => "#F85149",
+                SecurityFindingSeverity.Medium => "#D29922",
+                SecurityFindingSeverity.Low => "#E3B341",
+                _ => "#8B949E",
+            }
+            : "#8B949E";
+        return new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour));
+    }
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>Red when a captured request's host is outside the engagement scope, neutral otherwise.</summary>
+public sealed class ScopeFlagToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture)
+        => new SolidColorBrush((Color)ColorConverter.ConvertFromString(value is false ? "#F85149" : "#E6EDF3"));
 
     public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         => Binding.DoNothing;

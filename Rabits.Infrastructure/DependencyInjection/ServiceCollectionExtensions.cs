@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Rabits.Application.Abstractions;
 using Rabits.Application.Hosts;
 using Rabits.Application.Auth;
+using Rabits.Application.Layer7;
 using Rabits.Application.Recon;
 using Rabits.Application.Security;
 using Rabits.Application.Traffic;
@@ -11,6 +12,7 @@ using Rabits.Infrastructure.Auditing;
 using Rabits.Infrastructure.Auth;
 using Rabits.Infrastructure.Engagement;
 using Rabits.Infrastructure.Hosts;
+using Rabits.Infrastructure.Layer7;
 using Rabits.Infrastructure.Recon;
 using Rabits.Infrastructure.Runtime;
 using Rabits.Infrastructure.Traffic;
@@ -60,6 +62,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<InspectWebEndpointHandler>();
         services.AddSingleton<CaptureTrafficHandler>();
         services.AddTransient<CredentialAuditHandler>();
+        services.AddTransient<ScanUrlForSecretsHandler>();
 
         return services;
     }
@@ -93,6 +96,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISubdomainWordlist>(sp =>
             new EmbeddedSubdomainWordlist(options.SubdomainWordlistPath,
                 sp.GetRequiredService<ILogger<EmbeddedSubdomainWordlist>>()));
+        services.AddSingleton<IResourceFetcher>(_ => new HttpResourceFetcher(options.WebProbeTimeoutMs));
     }
 
     private static void RegisterHostDiscovery(IServiceCollection services, RabitsOptions options)
