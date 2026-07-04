@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Wireless;
+using Rabits.CLI.Output;
 using Rabits.CLI.Rendering;
 using Rabits.Domain.Networking;
 using Spectre.Console;
@@ -126,6 +126,6 @@ public sealed class WifiScanCommand : AsyncCommand<WifiScanSettings>
             open = n.IsOpen,
         });
 
-        Console.WriteLine(JsonSerializer.Serialize(projection, new JsonSerializerOptions { WriteIndented = true }));
+        JsonReport.Emit("wifi.scan", null, projection);
     }
 }

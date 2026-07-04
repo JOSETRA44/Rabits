@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Layer7;
+using Rabits.CLI.Output;
 using Rabits.Domain.Engagement;
 using Rabits.Domain.Layer7;
 using Rabits.Domain.Recon;
@@ -48,9 +48,8 @@ public sealed class WebSecretsCommand : AsyncCommand<WebSecretsSettings>
 
         if (settings.Json)
         {
-            Console.WriteLine(JsonSerializer.Serialize(
-                findings.Select(f => new { f.RuleName, f.Category, severity = f.Severity.ToString(), match = f.RedactedMatch, f.Source, f.Entropy }),
-                new JsonSerializerOptions { WriteIndented = true }));
+            JsonReport.Emit("web.secrets", uri.Host,
+                findings.Select(f => new { f.RuleName, f.Category, severity = f.Severity.ToString(), match = f.RedactedMatch, f.Source, f.Entropy }));
             return 0;
         }
 

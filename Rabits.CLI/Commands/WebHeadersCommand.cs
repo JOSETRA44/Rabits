@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Recon;
+using Rabits.CLI.Output;
 using Rabits.Domain.Engagement;
 using Rabits.Domain.Recon;
 using Spectre.Console;
@@ -51,7 +51,7 @@ public sealed class WebHeadersCommand : AsyncCommand<WebHeadersSettings>
 
         if (settings.Json)
         {
-            Console.WriteLine(JsonSerializer.Serialize(new
+            JsonReport.Emit("web.headers", info.Url.Host, new
             {
                 url = info.Url.ToString(),
                 status = info.StatusCode,
@@ -64,7 +64,7 @@ public sealed class WebHeadersCommand : AsyncCommand<WebHeadersSettings>
                 },
                 headers = info.Headers,
                 security = info.SecurityFindings.Select(f => new { f.Header, f.Present, severity = f.Severity.ToString(), f.Detail }),
-            }, new JsonSerializerOptions { WriteIndented = true }));
+            });
             return 0;
         }
 

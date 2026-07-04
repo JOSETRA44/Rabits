@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Recon;
+using Rabits.CLI.Output;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -26,16 +26,15 @@ public sealed class WebWhoisCommand : AsyncCommand<WebWhoisSettings>
 
         if (settings.Json)
         {
-            Console.WriteLine(JsonSerializer.Serialize(new
+            JsonReport.Emit("web.whois", result.Query, new
             {
-                domain = result.Query,
                 server = result.Server,
                 registrar = result.Registrar,
                 createdOn = result.CreatedOn,
                 expiresOn = result.ExpiresOn,
                 daysUntilExpiry = result.DaysUntilExpiry,
                 nameServers = result.NameServers,
-            }, new JsonSerializerOptions { WriteIndented = true }));
+            });
             return 0;
         }
 

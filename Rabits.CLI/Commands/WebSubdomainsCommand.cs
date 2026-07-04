@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Recon;
+using Rabits.CLI.Output;
 using Rabits.Domain.Recon;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -40,9 +40,8 @@ public sealed class WebSubdomainsCommand : AsyncCommand<WebSubdomainsSettings>
 
         if (settings.Json)
         {
-            Console.WriteLine(JsonSerializer.Serialize(
-                found.Select(s => new { name = s.Name, addresses = s.Addresses }),
-                new JsonSerializerOptions { WriteIndented = true }));
+            JsonReport.Emit("web.subdomains", settings.Domain,
+                found.Select(s => new { name = s.Name, addresses = s.Addresses }));
             return 0;
         }
 

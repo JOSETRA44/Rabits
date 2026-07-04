@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rabits.GUI", "Rabits.GUI\Ra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rabits.Tests", "Rabits.Tests\Rabits.Tests.csproj", "{FD88C98D-FE7A-4AD8-A68D-A2B5906F1A4C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rabits.Mcp", "Rabits.Mcp\Rabits.Mcp.csproj", "{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,18 @@ Global
 		{FD88C98D-FE7A-4AD8-A68D-A2B5906F1A4C}.Release|x64.Build.0 = Release|Any CPU
 		{FD88C98D-FE7A-4AD8-A68D-A2B5906F1A4C}.Release|x86.ActiveCfg = Release|Any CPU
 		{FD88C98D-FE7A-4AD8-A68D-A2B5906F1A4C}.Release|x86.Build.0 = Release|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Debug|x64.Build.0 = Debug|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Debug|x86.Build.0 = Debug|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Release|x64.ActiveCfg = Release|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Release|x64.Build.0 = Release|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Release|x86.ActiveCfg = Release|Any CPU
+		{3BA0BC39-A9CE-412B-8E0A-A6F3331D5B07}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

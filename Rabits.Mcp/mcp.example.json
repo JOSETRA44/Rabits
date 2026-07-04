@@ -1,0 +1,14 @@
+{
+  "// note": "Register Rabits as an MCP server in any MCP client (Claude Desktop/Code, etc.). Build first: dotnet build -c Release Rabits.Mcp, then point 'command' at the produced rabits-mcp.exe.",
+  "mcpServers": {
+    "rabits": {
+      "command": "C:\\Users\\USER\\source\\APPS-C++\\consola\\Rabits\\Rabits.Mcp\\bin\\Release\\net8.0-windows\\rabits-mcp.exe",
+      "args": [],
+      "env": {
+        "RABITS_SCOPE": "C:\\Users\\USER\\source\\APPS-C++\\consola\\Rabits\\scope.json",
+        "RABITS_AUDIT": "C:\\Users\\USER\\source\\APPS-C++\\consola\\Rabits\\rabits-audit.jsonl",
+        "RABITS_SIMULATE": "0"
+      }
+    }
+  }
+}

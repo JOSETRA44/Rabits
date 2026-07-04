@@ -1,21 +1,46 @@
+using System.ComponentModel;
 using Rabits.Application.Abstractions;
+using Rabits.CLI.Output;
 using Rabits.Domain.Auditing;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace Rabits.CLI.Commands;
 
+public sealed class AuditShowSettings : GlobalSettings
+{
+    [CommandOption("--json")]
+    [Description("Emit the audit trail as structured JSON.")]
+    public bool Json { get; init; }
+}
+
 /// <summary>`rabits audit show` — print the engagement audit trail and verify its hash chain.</summary>
-public sealed class AuditShowCommand : AsyncCommand<GlobalSettings>
+public sealed class AuditShowCommand : AsyncCommand<AuditShowSettings>
 {
     private readonly IAuditLog _audit;
 
     public AuditShowCommand(IAuditLog audit) => _audit = audit;
 
-    public override async Task<int> ExecuteAsync(CommandContext context, GlobalSettings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, AuditShowSettings settings)
     {
         var entries = await _audit.ReadAllAsync();
         var intact = await _audit.VerifyAsync();
+
+        if (settings.Json)
+        {
+            JsonReport.Emit("audit.show", null, new
+            {
+                chainIntact = intact,
+                count = entries.Count,
+                entries = entries.Select(e => new
+                {
+                    e.Sequence, e.Timestamp, e.Operator, operation = e.OperationName,
+                    classification = e.Classification.ToString(), e.Target,
+                    outcome = e.Outcome.ToString(), e.Detail, e.Hash,
+                }),
+            });
+            return intact ? 0 : 2;
+        }
 
         if (entries.Count == 0)
         {

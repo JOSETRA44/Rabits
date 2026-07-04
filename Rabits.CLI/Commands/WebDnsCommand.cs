@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Recon;
+using Rabits.CLI.Output;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -29,9 +29,8 @@ public sealed class WebDnsCommand : AsyncCommand<WebDomainSettings>
 
         if (settings.Json)
         {
-            Console.WriteLine(JsonSerializer.Serialize(
-                records.Select(r => new { type = r.Type.ToString(), value = r.Value, ttl = r.Ttl }),
-                new JsonSerializerOptions { WriteIndented = true }));
+            JsonReport.Emit("web.dns", settings.Domain,
+                records.Select(r => new { type = r.Type.ToString(), value = r.Value, ttl = r.Ttl }));
             return 0;
         }
 

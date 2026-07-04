@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Rabits.Application.Abstractions;
 using Rabits.Application.Auth;
+using Rabits.CLI.Output;
 using Rabits.Domain.Auth;
 using Rabits.Domain.Engagement;
 using Spectre.Console;
@@ -61,6 +62,10 @@ public sealed class AttackHttpSettings : GlobalSettings
     [CommandOption("--max <N>")]
     [DefaultValue(5000)]
     public int Max { get; init; } = 5000;
+
+    [CommandOption("--json")]
+    [Description("Emit the audit result as structured JSON.")]
+    public bool Json { get; init; }
 }
 
 /// <summary>`rabits attack http` — dictionary credential audit against an HTTP login (Intrusive, scope-gated).</summary>
@@ -119,19 +124,40 @@ public sealed class AttackHttpCommand : AsyncCommand<AttackHttpSettings>
         CredentialAuditSummary summary;
         try
         {
-            summary = await AnsiConsole.Status().Spinner(Spinner.Known.Dots).StartAsync(
-                $"Auditing [bold]{Markup.Escape(uri.Host)}[/] — up to {total} credential(s)…",
-                async _ => await _handler.HandleAsync(request, progress, cts.Token));
+            summary = settings.Json
+                ? await _handler.HandleAsync(request, progress, cts.Token)
+                : await AnsiConsole.Status().Spinner(Spinner.Known.Dots).StartAsync(
+                    $"Auditing [bold]{Markup.Escape(uri.Host)}[/] — up to {total} credential(s)…",
+                    async _ => await _handler.HandleAsync(request, progress, cts.Token));
         }
         catch (OutOfScopeException ex)
         {
+            if (settings.Json)
+            {
+                JsonReport.Emit("attack.http", uri.Host, new { refused = true, reason = ex.Message });
+                return 3;
+            }
             AnsiConsole.MarkupLineInterpolated($"[red]Refused — out of scope:[/] {ex.Message}");
             AnsiConsole.MarkupLine("[grey]Credential audit is Intrusive: the scope must list this host AND set \"maxClassification\": \"Intrusive\".[/]");
             return 3;
         }
 
+        if (settings.Json)
+        {
+            JsonReport.Emit("attack.http", uri.Host, new
+            {
+                attempted = summary.Attempted,
+                failures = summary.Failures,
+                errors = summary.Errors,
+                stoppedEarly = summary.StoppedEarly,
+                elapsedSeconds = summary.Elapsed.TotalSeconds,
+                successes = summary.Successes.Select(c => new { c.Username, c.Password }),
+            });
+            return 0;
+        }
+
         Render(summary, uri.Host);
-        return summary.AnySuccess ? 0 : 0;
+        return 0;
     }
 
     private static void Render(CredentialAuditSummary summary, string host)

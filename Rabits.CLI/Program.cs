@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Rabits.Application.Abstractions;
 using Rabits.CLI.Commands;
 using Rabits.CLI.Infrastructure;
+using Rabits.CLI.Output;
 using Rabits.Infrastructure;
 using Rabits.Infrastructure.DependencyInjection;
 using Spectre.Console.Cli;
@@ -13,6 +15,9 @@ var services = new ServiceCollection();
 services.AddLogging(builder => builder
     .AddSimpleConsole(o => o.SingleLine = true)
     .SetMinimumLevel(LogLevel.Warning));
+// Keep stdout clean for --json / pipes: route all diagnostics to stderr.
+services.Configure<Microsoft.Extensions.Logging.Console.ConsoleLoggerOptions>(
+    o => o.LogToStandardErrorThreshold = LogLevel.Trace);
 
 services.AddRabitsEngine(options =>
 {
@@ -21,6 +26,13 @@ services.AddRabitsEngine(options =>
     options.ForceFakeScanner = globals.Fake;
     options.ForceSimulatedCapture = globals.Simulate;
 });
+
+// Stamp the report envelope with engagement context (operator + scope).
+using (var probe = services.BuildServiceProvider())
+{
+    JsonReport.Operator = probe.GetService<IOperatorContext>()?.OperatorName;
+    JsonReport.Scope = probe.GetService<IScopePolicy>()?.Current?.Name;
+}
 
 var app = new CommandApp(new TypeRegistrar(services));
 app.Configure(config =>

@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using Rabits.Application.Hosts;
+using Rabits.CLI.Output;
 using Rabits.Domain.Engagement;
 using Rabits.Domain.Networking;
 using Spectre.Console;
@@ -84,7 +84,7 @@ public sealed class HostsDiscoverCommand : AsyncCommand<HostsDiscoverSettings>
                 });
 
             if (settings.Json)
-                EmitJson(hosts);
+                EmitJson(hosts, settings.Target);
             else
                 Render(hosts, settings.Target, profile);
 
@@ -145,7 +145,7 @@ public sealed class HostsDiscoverCommand : AsyncCommand<HostsDiscoverSettings>
         AnsiConsole.Write(table);
     }
 
-    private static void EmitJson(IReadOnlyList<DiscoveredHost> hosts)
+    private static void EmitJson(IReadOnlyList<DiscoveredHost> hosts, string target)
     {
         var projection = hosts.Select(h => new
         {
@@ -159,7 +159,7 @@ public sealed class HostsDiscoverCommand : AsyncCommand<HostsDiscoverSettings>
             openPorts = h.OpenPorts.Select(p => new { p.Number, service = p.Service }),
         });
 
-        Console.WriteLine(JsonSerializer.Serialize(projection, new JsonSerializerOptions { WriteIndented = true }));
+        JsonReport.Emit("hosts.discover", target, projection);
     }
 
     private static bool TryParseProfile(string value, out PortScanProfile profile)

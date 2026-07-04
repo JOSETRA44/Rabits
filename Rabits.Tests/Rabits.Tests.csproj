@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Rabits.Domain\Rabits.Domain.csproj" />
     <ProjectReference Include="..\Rabits.Application\Rabits.Application.csproj" />
     <ProjectReference Include="..\Rabits.Infrastructure\Rabits.Infrastructure.csproj" />
+    <ProjectReference Include="..\Rabits.Mcp\Rabits.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
