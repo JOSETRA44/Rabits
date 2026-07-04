@@ -7,7 +7,7 @@ namespace Rabits.GUI.ViewModels;
 /// <summary>Shell view model: owns the navigation rail, the active content, and the scope indicator.</summary>
 public sealed partial class MainViewModel : ObservableObject
 {
-    public MainViewModel(WifiViewModel wifi, IScopePolicy scope, IOperatorContext operatorContext)
+    public MainViewModel(WifiViewModel wifi, HostsViewModel hosts, IScopePolicy scope, IOperatorContext operatorContext)
     {
         OperatorName = operatorContext.OperatorName;
 
@@ -26,7 +26,7 @@ public sealed partial class MainViewModel : ObservableObject
         NavItems = new ObservableCollection<NavItem>
         {
             new() { Glyph = "📶", Title = "Wi-Fi", Content = wifi },
-            new() { Glyph = "🖥", Title = "Hosts / Map", Content = new PlaceholderViewModel("Hosts / Map", "Phase 2") },
+            new() { Glyph = "🖥", Title = "Hosts / Map", Content = hosts },
             new() { Glyph = "🌊", Title = "Traffic", Content = new PlaceholderViewModel("Traffic", "Phase 4") },
             new() { Glyph = "🌐", Title = "Web Recon", Content = new PlaceholderViewModel("Web / Domain Recon", "Phase 3") },
             new() { Glyph = "🎯", Title = "Attacks", Content = new PlaceholderViewModel("Attacks", "Phase 5") },

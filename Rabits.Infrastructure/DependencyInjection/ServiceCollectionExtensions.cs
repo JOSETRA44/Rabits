@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Rabits.Application.Abstractions;
+using Rabits.Application.Hosts;
 using Rabits.Application.Security;
 using Rabits.Application.Wireless;
 using Rabits.Infrastructure.Auditing;
 using Rabits.Infrastructure.Engagement;
+using Rabits.Infrastructure.Hosts;
 using Rabits.Infrastructure.Runtime;
 using Rabits.Infrastructure.Wireless;
 
@@ -38,11 +40,28 @@ public static class ServiceCollectionExtensions
 
         // Capability adapters.
         RegisterWirelessScanner(services, options);
+        RegisterHostDiscovery(services, options);
 
         // Use cases.
         services.AddTransient<ScanWirelessNetworksHandler>();
+        services.AddTransient<DiscoverHostsHandler>();
 
         return services;
+    }
+
+    private static void RegisterHostDiscovery(IServiceCollection services, RabitsOptions options)
+    {
+        services.AddSingleton<IHostProbe>(_ => new PingHostProbe(options.HostProbeTimeoutMs));
+        services.AddSingleton<IReverseDnsResolver, DnsReverseResolver>();
+        services.AddSingleton<IPortScanner>(_ =>
+            new TcpPortScanner(options.PortConnectTimeoutMs, options.PortScanConcurrency));
+        services.AddSingleton<IOuiVendorLookup>(sp =>
+            new EmbeddedOuiLookup(options.OuiFilePath, sp.GetRequiredService<ILogger<EmbeddedOuiLookup>>()));
+
+        if (OperatingSystem.IsWindows())
+            services.AddSingleton<IArpResolver, SendArpResolver>();
+        else
+            services.AddSingleton<IArpResolver, NullArpResolver>();
     }
 
     private static void RegisterWirelessScanner(IServiceCollection services, RabitsOptions options)

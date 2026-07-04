@@ -1,0 +1,32 @@
+# Rabits OUI starter dataset — curated, high-confidence prefixes (virtualization, SBC, IoT chips).
+# This is intentionally small and accurate. For full coverage, drop the IEEE `oui.csv` or the
+# Wireshark `manuf` file next to the binary and point RabitsOptions.OuiFilePath at it; external
+# entries are merged and override these.
+# Format:  <OUI>\t<Vendor>   (OUI accepts AABBCC, AA:BB:CC or AA-BB-CC)
+000000	Xerox Corporation
+00000C	Cisco Systems, Inc.
+000569	VMware, Inc.
+000C29	VMware, Inc.
+001C14	VMware, Inc.
+005056	VMware, Inc.
+080027	PCS Systemtechnik (VirtualBox)
+00155D	Microsoft Corporation (Hyper-V)
+00163E	Xensource, Inc.
+001C42	Parallels, Inc.
+525400	QEMU / KVM Virtual NIC
+B827EB	Raspberry Pi Foundation
+DCA632	Raspberry Pi Trading Ltd
+E45F01	Raspberry Pi Trading Ltd
+28CDC1	Raspberry Pi Trading Ltd
+2CCF67	Raspberry Pi Trading Ltd
+D83ADD	Raspberry Pi Trading Ltd
+240AC4	Espressif Inc.
+30AEA4	Espressif Inc.
+3C71BF	Espressif Inc.
+84F3EB	Espressif Inc.
+A4CF12	Espressif Inc.
+ECFABC	Espressif Inc.
+7CDFA1	Espressif Inc.
+8CAAB5	Espressif Inc.
+D8A01D	Espressif Inc.
+C4DEE2	Espressif Inc.

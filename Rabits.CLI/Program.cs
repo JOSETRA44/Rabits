@@ -30,6 +30,12 @@ app.Configure(config =>
         wifi.SetDescription("Wireless reconnaissance.");
         wifi.AddCommand<WifiScanCommand>("scan").WithDescription("Passively scan for nearby networks.");
     });
+    config.AddBranch("hosts", hosts =>
+    {
+        hosts.SetDescription("Host discovery and network mapping.");
+        hosts.AddCommand<HostsDiscoverCommand>("discover")
+            .WithDescription("Active host sweep (ICMP + ARP) with optional port scan.");
+    });
     config.AddBranch("audit", audit =>
     {
         audit.SetDescription("Engagement audit trail.");

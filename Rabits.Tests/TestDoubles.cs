@@ -1,3 +1,4 @@
+using System.Net;
 using Rabits.Application.Abstractions;
 using Rabits.Domain.Auditing;
 using Rabits.Domain.Engagement;
@@ -51,4 +52,50 @@ internal sealed class InMemoryAuditLog : IAuditLog
         => Task.FromResult<IReadOnlyList<AuditEntry>>(_entries);
 
     public Task<bool> VerifyAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+}
+
+internal sealed class FakeHostProbe : IHostProbe
+{
+    private readonly HashSet<string> _up;
+    public FakeHostProbe(params string[] upAddresses) => _up = new HashSet<string>(upAddresses);
+
+    public Task<HostProbeResult> ProbeAsync(IPAddress address, CancellationToken cancellationToken = default)
+        => Task.FromResult(_up.Contains(address.ToString())
+            ? new HostProbeResult(HostStatus.Up, TimeSpan.FromMilliseconds(1), DiscoveryMethod.IcmpEcho)
+            : HostProbeResult.Down);
+}
+
+/// <summary>Resolves a MAC only for the addresses declared alive, mirroring real ARP behaviour.</summary>
+internal sealed class FakeArpResolver : IArpResolver
+{
+    private readonly MacAddress _mac;
+    private readonly HashSet<string> _reachable;
+
+    public FakeArpResolver(MacAddress mac, params string[] reachable)
+    {
+        _mac = mac;
+        _reachable = new HashSet<string>(reachable);
+    }
+
+    public Task<MacAddress?> ResolveAsync(IPAddress address, CancellationToken cancellationToken = default)
+        => Task.FromResult(_reachable.Contains(address.ToString()) ? _mac : (MacAddress?)null);
+}
+
+internal sealed class StubOuiLookup : IOuiVendorLookup
+{
+    public int EntryCount => 0;
+    public string? Lookup(MacAddress mac) => "TestVendor";
+}
+
+internal sealed class StubPortScanner : IPortScanner
+{
+    public Task<IReadOnlyList<DiscoveredPort>> ScanAsync(
+        IPAddress address, IReadOnlyList<int> ports, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyList<DiscoveredPort>>(Array.Empty<DiscoveredPort>());
+}
+
+internal sealed class StubReverseDns : IReverseDnsResolver
+{
+    public Task<string?> ResolveAsync(IPAddress address, CancellationToken cancellationToken = default)
+        => Task.FromResult<string?>(null);
 }

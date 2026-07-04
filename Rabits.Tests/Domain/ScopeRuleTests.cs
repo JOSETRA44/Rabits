@@ -27,4 +27,12 @@ public class ScopeRuleTests
     [InlineData("Corp", "Guest", false)]
     public void Ssid_rule_is_case_insensitive_with_wildcard(string pattern, string target, bool expected)
         => Assert.Equal(expected, ScopeRule.Ssid(pattern).Matches(target));
+
+    [Theory]
+    [InlineData("10.0.0.0/24", "10.0.0.0/28", true)]  // fully contained
+    [InlineData("10.0.0.0/24", "10.0.0.0/24", true)]  // equal
+    [InlineData("10.0.0.0/24", "10.0.0.0/16", false)] // wider than the rule
+    [InlineData("10.0.0.0/24", "10.0.1.0/24", false)] // disjoint
+    public void Cidr_rule_requires_full_containment_of_a_cidr_target(string rule, string target, bool expected)
+        => Assert.Equal(expected, ScopeRule.Cidr(rule).Matches(target));
 }

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using Rabits.Domain.Networking;
 
 namespace Rabits.Domain.Engagement;
 
@@ -55,27 +56,15 @@ public sealed record ScopeRule(TargetType Type, string Pattern)
 
     private bool MatchesCidr(string target)
     {
-        if (!IPAddress.TryParse(target, out var ip)) return false;
+        if (!Subnet.TryParse(Pattern, out var ruleNetwork) || ruleNetwork is null)
+            return false;
 
-        var slash = Pattern.IndexOf('/');
-        if (slash < 0) return false;
-        if (!IPAddress.TryParse(Pattern[..slash], out var network)) return false;
-        if (!int.TryParse(Pattern[(slash + 1)..], out var prefix)) return false;
-        if (ip.AddressFamily != network.AddressFamily) return false;
+        // A CIDR target must be *fully contained* in the rule (no half-in-scope ranges); a bare
+        // IP target is matched as a single address.
+        if (target.Contains('/'))
+            return Subnet.TryParse(target, out var requested) && requested is not null && ruleNetwork.Contains(requested);
 
-        var ipBytes = ip.GetAddressBytes();
-        var netBytes = network.GetAddressBytes();
-        if (prefix < 0 || prefix > ipBytes.Length * 8) return false;
-
-        var fullBytes = prefix / 8;
-        for (var i = 0; i < fullBytes; i++)
-            if (ipBytes[i] != netBytes[i]) return false;
-
-        var remainingBits = prefix % 8;
-        if (remainingBits == 0) return true;
-
-        var mask = (byte)(0xFF << (8 - remainingBits));
-        return (ipBytes[fullBytes] & mask) == (netBytes[fullBytes] & mask);
+        return IPAddress.TryParse(target, out var ip) && ruleNetwork.Contains(ip);
     }
 
     public static ScopeRule Cidr(string cidr) => new(TargetType.Cidr, cidr);

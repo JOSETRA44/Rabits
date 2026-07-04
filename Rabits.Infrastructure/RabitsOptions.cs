@@ -17,4 +17,16 @@ public sealed class RabitsOptions
 
     /// <summary>How long to let a triggered scan settle before reading results.</summary>
     public int WifiScanSettleSeconds { get; set; } = 3;
+
+    /// <summary>Optional external OUI database merged over the embedded starter set (IEEE/Wireshark format).</summary>
+    public string? OuiFilePath { get; set; }
+
+    /// <summary>ICMP echo timeout per host, in milliseconds.</summary>
+    public int HostProbeTimeoutMs { get; set; } = 800;
+
+    /// <summary>TCP connect timeout per port, in milliseconds.</summary>
+    public int PortConnectTimeoutMs { get; set; } = 500;
+
+    /// <summary>Max simultaneous TCP connects inside a single host's port scan.</summary>
+    public int PortScanConcurrency { get; set; } = 200;
 }

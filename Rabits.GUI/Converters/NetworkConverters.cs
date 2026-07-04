@@ -49,6 +49,16 @@ public sealed class QualityToBrushConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>Maps a host's up/down boolean to a status colour.</summary>
+public sealed class StatusToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture)
+        => new SolidColorBrush((Color)ColorConverter.ConvertFromString(value is true ? "#3FB950" : "#8B949E"));
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
 /// <summary>Human-readable band label for a <see cref="FrequencyBand"/>.</summary>
 public sealed class BandToTextConverter : IValueConverter
 {

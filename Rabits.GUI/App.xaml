@@ -13,6 +13,9 @@
             <DataTemplate DataType="{x:Type vm:WifiViewModel}">
                 <views:WifiView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:HostsViewModel}">
+                <views:HostsView/>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
                 <views:PlaceholderView/>
             </DataTemplate>
