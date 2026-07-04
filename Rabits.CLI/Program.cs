@@ -36,6 +36,14 @@ app.Configure(config =>
         hosts.AddCommand<HostsDiscoverCommand>("discover")
             .WithDescription("Active host sweep (ICMP + ARP) with optional port scan.");
     });
+    config.AddBranch("web", web =>
+    {
+        web.SetDescription("Web and domain reconnaissance.");
+        web.AddCommand<WebDnsCommand>("dns").WithDescription("Passive DNS record enumeration.");
+        web.AddCommand<WebWhoisCommand>("whois").WithDescription("Passive WHOIS lookup.");
+        web.AddCommand<WebSubdomainsCommand>("subdomains").WithDescription("Passive subdomain enumeration.");
+        web.AddCommand<WebHeadersCommand>("headers").WithDescription("Active HTTP/TLS + security-header audit.");
+    });
     config.AddBranch("audit", audit =>
     {
         audit.SetDescription("Engagement audit trail.");

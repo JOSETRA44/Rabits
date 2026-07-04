@@ -4,6 +4,7 @@ using Rabits.Domain.Auditing;
 using Rabits.Domain.Engagement;
 using Rabits.Domain.Networking;
 using Rabits.Domain.Operations;
+using Rabits.Domain.Recon;
 
 namespace Rabits.Tests;
 
@@ -98,4 +99,27 @@ internal sealed class StubReverseDns : IReverseDnsResolver
 {
     public Task<string?> ResolveAsync(IPAddress address, CancellationToken cancellationToken = default)
         => Task.FromResult<string?>(null);
+}
+
+internal sealed class FakeDnsResolver : IDnsResolver
+{
+    private readonly Func<string, DnsRecordType, IReadOnlyList<DnsRecord>> _resolve;
+    public FakeDnsResolver(Func<string, DnsRecordType, IReadOnlyList<DnsRecord>> resolve) => _resolve = resolve;
+
+    public Task<IReadOnlyList<DnsRecord>> QueryAsync(string name, DnsRecordType type, CancellationToken cancellationToken = default)
+        => Task.FromResult(_resolve(name, type));
+}
+
+internal sealed class FakeWordlist : ISubdomainWordlist
+{
+    public FakeWordlist(params string[] labels) => Labels = labels;
+    public IReadOnlyList<string> Labels { get; }
+}
+
+internal sealed class FakeWebProbe : IWebProbe
+{
+    private readonly WebEndpointInfo _info;
+    public FakeWebProbe(WebEndpointInfo info) => _info = info;
+    public Task<WebEndpointInfo> InspectAsync(Uri url, CancellationToken cancellationToken = default)
+        => Task.FromResult(_info);
 }

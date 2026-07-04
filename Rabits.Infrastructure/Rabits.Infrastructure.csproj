@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Data\oui.tsv" />
+    <EmbeddedResource Include="Data\subdomains.txt" />
   </ItemGroup>
 
   <ItemGroup>

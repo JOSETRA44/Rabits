@@ -31,6 +31,7 @@ public partial class App : System.Windows.Application
 
         services.AddSingleton<WifiViewModel>();
         services.AddSingleton<HostsViewModel>();
+        services.AddSingleton<WebReconViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
 

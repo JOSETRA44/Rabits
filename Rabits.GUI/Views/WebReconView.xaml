@@ -1,0 +1,114 @@
+<UserControl x:Class="Rabits.GUI.Views.WebReconView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:Rabits.GUI.Converters">
+    <UserControl.Resources>
+        <conv:StringJoinConverter x:Key="Join"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ==== Header ==== -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Web &amp; Domain Reconnaissance" Style="{StaticResource H1}"/>
+            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource Caption}" Margin="0,3,0,0"/>
+        </StackPanel>
+
+        <!-- ==== Toolbar ==== -->
+        <Border Grid.Row="1" Background="{StaticResource PanelBrush}" CornerRadius="8"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="12" Margin="0,14,0,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="DOMAIN" Style="{StaticResource Caption}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}"
+                             Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
+                             BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="8,6"
+                             FontFamily="{StaticResource MonoFont}" CaretBrush="{StaticResource TextBrush}"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="⟳  Recon" VerticalAlignment="Bottom" Height="34"
+                        Command="{Binding ReconCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- ==== Results ==== -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="340"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- DNS records -->
+            <Border Grid.Column="0" Background="{StaticResource PanelBrush}" CornerRadius="8"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,16,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="DNS RECORDS" Style="{StaticResource Caption}" Margin="14,12,0,6"/>
+                    <DataGrid ItemsSource="{Binding DnsRecords}" Margin="4" CanUserSortColumns="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="TTL" Binding="{Binding Ttl}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- WHOIS + subdomains -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="{StaticResource PanelBrush}" CornerRadius="8"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="WHOIS" Style="{StaticResource Caption}"/>
+                        <TextBlock Text="Registrar" Style="{StaticResource Caption}" Margin="0,10,0,2"/>
+                        <TextBlock Text="{Binding WhoisRegistrar}" TextWrapping="Wrap"/>
+                        <TextBlock Text="Created" Style="{StaticResource Caption}" Margin="0,10,0,2"/>
+                        <TextBlock Text="{Binding WhoisCreated}"/>
+                        <TextBlock Text="Expires" Style="{StaticResource Caption}" Margin="0,10,0,2"/>
+                        <TextBlock Text="{Binding WhoisExpires}"/>
+                        <TextBlock Text="Name servers" Style="{StaticResource Caption}" Margin="0,10,0,2"/>
+                        <TextBlock Text="{Binding WhoisNameServers}" Style="{StaticResource Mono}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Background="{StaticResource PanelBrush}" CornerRadius="8"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="SUBDOMAINS" Style="{StaticResource Caption}" Margin="14,12,0,6"/>
+                        <ListBox ItemsSource="{Binding Subdomains}" Background="Transparent" BorderThickness="0"
+                                 Margin="6" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="6,4">
+                                        <TextBlock Text="{Binding Name}" Foreground="#58A6FF"
+                                                   FontFamily="{StaticResource MonoFont}"/>
+                                        <TextBlock Text="{Binding Addresses, Converter={StaticResource Join}}"
+                                                   Style="{StaticResource Caption}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

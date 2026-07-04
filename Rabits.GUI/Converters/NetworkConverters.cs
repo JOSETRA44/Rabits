@@ -49,6 +49,18 @@ public sealed class QualityToBrushConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>Joins an IEnumerable of strings into a comma-separated string for display.</summary>
+public sealed class StringJoinConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture)
+        => value is System.Collections.IEnumerable items and not string
+            ? string.Join(", ", items.Cast<object>().Select(o => o?.ToString()))
+            : value?.ToString() ?? string.Empty;
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
 /// <summary>Maps a host's up/down boolean to a status colour.</summary>
 public sealed class StatusToBrushConverter : IValueConverter
 {

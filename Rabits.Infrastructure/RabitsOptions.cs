@@ -29,4 +29,16 @@ public sealed class RabitsOptions
 
     /// <summary>Max simultaneous TCP connects inside a single host's port scan.</summary>
     public int PortScanConcurrency { get; set; } = 200;
+
+    /// <summary>DNS query timeout per server, in milliseconds.</summary>
+    public int DnsTimeoutMs { get; set; } = 4000;
+
+    /// <summary>WHOIS TCP timeout, in milliseconds.</summary>
+    public int WhoisTimeoutMs { get; set; } = 8000;
+
+    /// <summary>HTTP/TLS probe timeout, in milliseconds.</summary>
+    public int WebProbeTimeoutMs { get; set; } = 10000;
+
+    /// <summary>Optional external subdomain wordlist (one label per line) replacing the embedded set.</summary>
+    public string? SubdomainWordlistPath { get; set; }
 }

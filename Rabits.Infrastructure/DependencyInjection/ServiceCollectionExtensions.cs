@@ -2,11 +2,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Rabits.Application.Abstractions;
 using Rabits.Application.Hosts;
+using Rabits.Application.Recon;
 using Rabits.Application.Security;
 using Rabits.Application.Wireless;
 using Rabits.Infrastructure.Auditing;
 using Rabits.Infrastructure.Engagement;
 using Rabits.Infrastructure.Hosts;
+using Rabits.Infrastructure.Recon;
 using Rabits.Infrastructure.Runtime;
 using Rabits.Infrastructure.Wireless;
 
@@ -41,12 +43,29 @@ public static class ServiceCollectionExtensions
         // Capability adapters.
         RegisterWirelessScanner(services, options);
         RegisterHostDiscovery(services, options);
+        RegisterWebRecon(services, options);
 
         // Use cases.
         services.AddTransient<ScanWirelessNetworksHandler>();
         services.AddTransient<DiscoverHostsHandler>();
+        services.AddTransient<DnsReconHandler>();
+        services.AddTransient<WhoisHandler>();
+        services.AddTransient<EnumerateSubdomainsHandler>();
+        services.AddTransient<InspectWebEndpointHandler>();
 
         return services;
+    }
+
+    private static void RegisterWebRecon(IServiceCollection services, RabitsOptions options)
+    {
+        services.AddSingleton<IDnsResolver>(sp =>
+            new DnsUdpClient(sp.GetRequiredService<ILogger<DnsUdpClient>>(), servers: null, options.DnsTimeoutMs));
+        services.AddSingleton<IWhoisClient>(sp =>
+            new WhoisClient(sp.GetRequiredService<ILogger<WhoisClient>>(), options.WhoisTimeoutMs));
+        services.AddSingleton<IWebProbe>(_ => new HttpWebProbe(options.WebProbeTimeoutMs));
+        services.AddSingleton<ISubdomainWordlist>(sp =>
+            new EmbeddedSubdomainWordlist(options.SubdomainWordlistPath,
+                sp.GetRequiredService<ILogger<EmbeddedSubdomainWordlist>>()));
     }
 
     private static void RegisterHostDiscovery(IServiceCollection services, RabitsOptions options)
