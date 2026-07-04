@@ -1,8 +1,10 @@
 using System.Net;
 using System.Runtime.CompilerServices;
 using Rabits.Application.Abstractions;
+using Rabits.Application.Auth;
 using Rabits.Application.Traffic;
 using Rabits.Domain.Auditing;
+using Rabits.Domain.Auth;
 using Rabits.Domain.Engagement;
 using Rabits.Domain.Networking;
 using Rabits.Domain.Operations;
@@ -157,6 +159,30 @@ internal sealed class FakeTrafficCapture : ITrafficCapture
             yield return packet;
             await Task.Yield();
         }
+    }
+}
+
+/// <summary>Returns success only for one known credential; used to test the audit orchestrator.</summary>
+internal sealed class FakeAuthProbe : IAuthProbe
+{
+    private readonly string _validUser;
+    private readonly string _validPassword;
+    public FakeAuthProbe(string validUser, string validPassword)
+    {
+        _validUser = validUser;
+        _validPassword = validPassword;
+    }
+
+    public Task<CredentialAttemptResult> TryAsync(AuthTarget target, Credential credential, CancellationToken cancellationToken = default)
+    {
+        var ok = credential.Username == _validUser && credential.Password == _validPassword;
+        return Task.FromResult(new CredentialAttemptResult
+        {
+            Credential = credential,
+            Result = ok ? AuthResult.Success : AuthResult.Failure,
+            StatusCode = ok ? 302 : 200,
+            Elapsed = TimeSpan.Zero,
+        });
     }
 }
 

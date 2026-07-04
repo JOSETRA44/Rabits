@@ -8,7 +8,7 @@ namespace Rabits.GUI.ViewModels;
 public sealed partial class MainViewModel : ObservableObject
 {
     public MainViewModel(WifiViewModel wifi, HostsViewModel hosts, WebReconViewModel web, TrafficViewModel traffic,
-        IScopePolicy scope, IOperatorContext operatorContext)
+        AttackViewModel attack, IScopePolicy scope, IOperatorContext operatorContext)
     {
         OperatorName = operatorContext.OperatorName;
 
@@ -30,7 +30,7 @@ public sealed partial class MainViewModel : ObservableObject
             new() { Glyph = "🖥", Title = "Hosts / Map", Content = hosts },
             new() { Glyph = "🌊", Title = "Traffic", Content = traffic },
             new() { Glyph = "🌐", Title = "Web Recon", Content = web },
-            new() { Glyph = "🎯", Title = "Attacks", Content = new PlaceholderViewModel("Attacks", "Phase 5") },
+            new() { Glyph = "🎯", Title = "Attacks", Content = attack },
             new() { Glyph = "📄", Title = "Reports", Content = new PlaceholderViewModel("Reports", "cross-cutting") },
         };
 

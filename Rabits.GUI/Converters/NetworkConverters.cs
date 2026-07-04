@@ -1,10 +1,31 @@
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
+using Rabits.Domain.Auth;
 using Rabits.Domain.Networking;
 using Rabits.Domain.Traffic;
 
 namespace Rabits.GUI.Converters;
+
+/// <summary>Colours a credential attempt: success = bright green, failure = technical grey, error = red.</summary>
+public sealed class AuthResultToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var colour = value is AuthResult r
+            ? r switch
+            {
+                AuthResult.Success => "#3FFF7A",
+                AuthResult.Error => "#F85149",
+                _ => "#6E7681",
+            }
+            : "#6E7681";
+        return new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour));
+    }
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
 
 /// <summary>Negates a boolean (e.g. enable a control only while not capturing).</summary>
 public sealed class BoolInverter : IValueConverter

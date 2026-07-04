@@ -33,6 +33,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<HostsViewModel>();
         services.AddSingleton<WebReconViewModel>();
         services.AddSingleton<TrafficViewModel>();
+        services.AddSingleton<AttackViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
 

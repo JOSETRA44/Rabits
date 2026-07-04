@@ -44,4 +44,10 @@ public sealed class RabitsOptions
 
     /// <summary>Force the synthetic traffic generator instead of real capture (demos/tests/no Npcap).</summary>
     public bool ForceSimulatedCapture { get; set; }
+
+    /// <summary>HTTP authentication probe timeout, in milliseconds.</summary>
+    public int AuthProbeTimeoutMs { get; set; } = 10000;
+
+    /// <summary>Optional external password wordlist replacing the embedded default set.</summary>
+    public string? CredentialWordlistPath { get; set; }
 }

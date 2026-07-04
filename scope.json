@@ -1,9 +1,7 @@
 {
-  "name": "Local Lab (loopback + host subnet)",
-  "maxClassification": "Active",
+  "name": "Auditoria de mi Router",
+  "maxClassification": "Intrusive",
   "rules": [
-    { "type": "Cidr", "pattern": "127.0.0.0/8" },
-    { "type": "Cidr", "pattern": "192.168.0.0/16" },
-    { "type": "Cidr", "pattern": "10.0.0.0/8" }
+    { "type": "Cidr", "pattern": "192.168.0.1" }
   ]
 }

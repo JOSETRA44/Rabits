@@ -2,11 +2,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Rabits.Application.Abstractions;
 using Rabits.Application.Hosts;
+using Rabits.Application.Auth;
 using Rabits.Application.Recon;
 using Rabits.Application.Security;
 using Rabits.Application.Traffic;
 using Rabits.Application.Wireless;
 using Rabits.Infrastructure.Auditing;
+using Rabits.Infrastructure.Auth;
 using Rabits.Infrastructure.Engagement;
 using Rabits.Infrastructure.Hosts;
 using Rabits.Infrastructure.Recon;
@@ -47,6 +49,7 @@ public static class ServiceCollectionExtensions
         RegisterHostDiscovery(services, options);
         RegisterWebRecon(services, options);
         RegisterTrafficCapture(services, options);
+        RegisterCredentialAudit(services, options);
 
         // Use cases.
         services.AddTransient<ScanWirelessNetworksHandler>();
@@ -56,8 +59,17 @@ public static class ServiceCollectionExtensions
         services.AddTransient<EnumerateSubdomainsHandler>();
         services.AddTransient<InspectWebEndpointHandler>();
         services.AddSingleton<CaptureTrafficHandler>();
+        services.AddTransient<CredentialAuditHandler>();
 
         return services;
+    }
+
+    private static void RegisterCredentialAudit(IServiceCollection services, RabitsOptions options)
+    {
+        services.AddSingleton<IAuthProbe>(_ => new HttpAuthProbe(options.AuthProbeTimeoutMs));
+        services.AddSingleton<ICredentialWordlist>(sp =>
+            new EmbeddedPasswordList(options.CredentialWordlistPath,
+                sp.GetRequiredService<ILogger<EmbeddedPasswordList>>()));
     }
 
     private static void RegisterTrafficCapture(IServiceCollection services, RabitsOptions options)

@@ -51,6 +51,11 @@ app.Configure(config =>
         traffic.AddCommand<TrafficDevicesCommand>("devices").WithDescription("List capture interfaces.");
         traffic.AddCommand<TrafficCaptureCommand>("capture").WithDescription("Live capture with real-time stats.");
     });
+    config.AddBranch("attack", attack =>
+    {
+        attack.SetDescription("Active security audits (Intrusive — require an in-scope, intrusive-enabled engagement).");
+        attack.AddCommand<AttackHttpCommand>("http").WithDescription("Dictionary credential audit against an HTTP login.");
+    });
     config.AddBranch("audit", audit =>
     {
         audit.SetDescription("Engagement audit trail.");
