@@ -24,4 +24,8 @@ public class GlobalSettings : CommandSettings
     [CommandOption("--simulate")]
     [Description("Use the synthetic traffic generator instead of real capture.")]
     public bool Simulate { get; init; }
+
+    [CommandOption("--god-mode")]
+    [Description("Disable scope validation entirely (trusted local/lab use; still audited).")]
+    public bool GodMode { get; init; }
 }

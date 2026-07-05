@@ -5,9 +5,12 @@ using Rabits.Application.Auth;
 using Rabits.Application.Hosts;
 using Rabits.Application.Layer7;
 using Rabits.Application.Recon;
+using Rabits.Application.Security;
 using Rabits.Application.Wireless;
+using Rabits.Domain.Auditing;
 using Rabits.Domain.Auth;
 using Rabits.Domain.Engagement;
+using Rabits.Domain.Operations;
 
 namespace Rabits.Mcp;
 
@@ -140,16 +143,54 @@ public static class RabitsToolset
             SchemaObject(),
             (sp, _, _) =>
             {
+                var godMode = sp.GetRequiredService<AuthorizationOptions>().BypassScope;
                 var scope = sp.GetRequiredService<IScopePolicy>().Current;
-                object result = scope is null
-                    ? new { loaded = false, note = "No scope loaded — active/intrusive operations are disabled." }
-                    : new
-                    {
-                        loaded = true, name = scope.Name, maxClassification = scope.MaxClassification.ToString(),
-                        startsAt = scope.StartsAt, endsAt = scope.EndsAt, maxRequestsPerSecond = scope.MaxRequestsPerSecond,
-                        rules = scope.Rules.Select(r => new { type = r.Type.ToString(), r.Pattern }),
-                    };
+                object result = new
+                {
+                    godMode,
+                    note = godMode ? "GOD MODE — scope validation disabled; all operations are authorized (still audited)." : null,
+                    loaded = scope is not null,
+                    scope = scope is null ? null : Describe(scope),
+                };
                 return Task.FromResult(result);
+            }),
+
+        new("scope_authorize",
+            "Record an operator authorization to expand the engagement scope in real time (no restart). "
+            + "Use this when the operator states a target is authorized (e.g. 'you may test 10.0.0.5'). "
+            + "The rule type is inferred; pass classification to raise what is permitted (passive|active|intrusive). Audited.",
+            SchemaObject(
+                Prop("target", "string", "Target to authorize: IP, CIDR, domain, MAC/BSSID or SSID.", required: true),
+                Prop("classification", "string", "Max operation class to permit: passive | active | intrusive.")),
+            async (sp, args, ct) =>
+            {
+                var target = GetString(args, "target");
+                if (target.Length == 0) return new { error = "target is required" };
+
+                var rule = ScopeRule.ForTarget(target);
+                var raiseTo = ParseClassification(GetString(args, "classification"));
+                var scope = sp.GetRequiredService<IScopePolicy>().Authorize(rule, raiseTo);
+
+                await sp.GetRequiredService<IAuditLog>().RecordAsync(
+                    RabitsOperation.Passive("scope.authorize", target), AuditOutcome.Completed,
+                    $"authorized {rule.Type} '{rule.Pattern}'" + (raiseTo is { } c ? $"; max→{c}" : string.Empty), ct);
+
+                return new { authorized = new { type = rule.Type.ToString(), pattern = rule.Pattern }, scope = Describe(scope) };
+            }),
+
+        new("scope_revoke",
+            "Remove an authorization from the engagement scope by its pattern. Audited.",
+            SchemaObject(Prop("pattern", "string", "Exact rule pattern to remove.", required: true)),
+            async (sp, args, ct) =>
+            {
+                var pattern = GetString(args, "pattern");
+                var policy = sp.GetRequiredService<IScopePolicy>();
+                var removed = policy.Revoke(pattern);
+                if (removed)
+                    await sp.GetRequiredService<IAuditLog>().RecordAsync(
+                        RabitsOperation.Passive("scope.revoke", pattern), AuditOutcome.Completed, $"revoked '{pattern}'", ct);
+
+                return new { removed, scope = policy.Current is { } s ? Describe(s) : null };
             }),
 
         new("audit_trail", "Show the tamper-evident engagement audit trail and whether its hash chain is intact.",
@@ -199,6 +240,24 @@ public static class RabitsToolset
         "top100" => PortScanProfile.Top100,
         "artillery" => PortScanProfile.Artillery,
         _ => PortScanProfile.None,
+    };
+
+    private static OperationClassification? ParseClassification(string value) => value.ToLowerInvariant() switch
+    {
+        "passive" => OperationClassification.Passive,
+        "active" => OperationClassification.Active,
+        "intrusive" => OperationClassification.Intrusive,
+        _ => null,
+    };
+
+    private static object Describe(EngagementScope scope) => new
+    {
+        name = scope.Name,
+        maxClassification = scope.MaxClassification.ToString(),
+        startsAt = scope.StartsAt,
+        endsAt = scope.EndsAt,
+        maxRequestsPerSecond = scope.MaxRequestsPerSecond,
+        rules = scope.Rules.Select(r => new { type = r.Type.ToString(), pattern = r.Pattern }),
     };
 
     // ── JSON-Schema builders ──────────────────────────────────────────────────────────────────

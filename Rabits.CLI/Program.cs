@@ -25,6 +25,7 @@ services.AddRabitsEngine(options =>
     if (globals.AuditPath is not null) options.AuditLogPath = globals.AuditPath;
     options.ForceFakeScanner = globals.Fake;
     options.ForceSimulatedCapture = globals.Simulate;
+    options.BypassScope = globals.GodMode;
 });
 
 // Stamp the report envelope with engagement context (operator + scope).
@@ -69,6 +70,13 @@ app.Configure(config =>
         attack.SetDescription("Active security audits (Intrusive — require an in-scope, intrusive-enabled engagement).");
         attack.AddCommand<AttackHttpCommand>("http").WithDescription("Dictionary credential audit against an HTTP login.");
     });
+    config.AddBranch("scope", scope =>
+    {
+        scope.SetDescription("Engagement scope (authorized targets) — grows in real time, no restart.");
+        scope.AddCommand<ScopeShowCommand>("show").WithDescription("Print the current scope.");
+        scope.AddCommand<ScopeAuthorizeCommand>("authorize").WithDescription("Authorize a target (persisted, audited).");
+        scope.AddCommand<ScopeRevokeCommand>("revoke").WithDescription("Remove an authorization.");
+    });
     config.AddBranch("audit", audit =>
     {
         audit.SetDescription("Engagement audit trail.");
@@ -78,11 +86,12 @@ app.Configure(config =>
 
 return await app.RunAsync(args);
 
-static (string? ScopePath, string? AuditPath, bool Fake, bool Simulate) PreScan(string[] args)
+static (string? ScopePath, string? AuditPath, bool Fake, bool Simulate, bool GodMode) PreScan(string[] args)
 {
     string? scope = null, audit = null;
     var fake = false;
     var simulate = false;
+    var godMode = false;
     for (var i = 0; i < args.Length; i++)
     {
         switch (args[i])
@@ -93,6 +102,9 @@ static (string? ScopePath, string? AuditPath, bool Fake, bool Simulate) PreScan(
             case "--simulate":
                 simulate = true;
                 break;
+            case "--god-mode":
+                godMode = true;
+                break;
             case "--scope" when i + 1 < args.Length:
                 scope = args[++i];
                 break;
@@ -101,5 +113,5 @@ static (string? ScopePath, string? AuditPath, bool Fake, bool Simulate) PreScan(
                 break;
         }
     }
-    return (scope, audit, fake, simulate);
+    return (scope, audit, fake, simulate, godMode);
 }

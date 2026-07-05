@@ -50,4 +50,8 @@ public sealed class RabitsOptions
 
     /// <summary>Optional external password wordlist replacing the embedded default set.</summary>
     public string? CredentialWordlistPath { get; set; }
+
+    /// <summary>"God Mode": disable scope validation entirely (trusted local/lab use). Bypassed
+    /// operations are still audited. Explicit opt-in — never the default.</summary>
+    public bool BypassScope { get; set; }
 }

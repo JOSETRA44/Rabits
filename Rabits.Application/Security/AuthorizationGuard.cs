@@ -17,13 +17,19 @@ public sealed class AuthorizationGuard : IAuthorizationGuard
     private readonly IClock _clock;
     private readonly IAuditLog _audit;
     private readonly ILogger<AuthorizationGuard> _logger;
+    private readonly AuthorizationOptions _options;
 
-    public AuthorizationGuard(IScopePolicy scope, IClock clock, IAuditLog audit, ILogger<AuthorizationGuard> logger)
+    public AuthorizationGuard(IScopePolicy scope, IClock clock, IAuditLog audit,
+        ILogger<AuthorizationGuard> logger, AuthorizationOptions? options = null)
     {
         _scope = scope;
         _clock = clock;
         _audit = audit;
         _logger = logger;
+        _options = options ?? new AuthorizationOptions();
+
+        if (_options.BypassScope)
+            _logger.LogWarning("GOD MODE ACTIVE — scope validation disabled; all operations authorized (still audited).");
     }
 
     public async Task AuthorizeAsync(RabitsOperation operation, CancellationToken cancellationToken = default)
@@ -46,6 +52,11 @@ public sealed class AuthorizationGuard : IAuthorizationGuard
 
     private AuthorizationResult Evaluate(RabitsOperation operation)
     {
+        // God Mode: scope validation is disabled. The action is still audited (see AuthorizeAsync),
+        // so accountability is preserved even though the gate is open.
+        if (_options.BypassScope)
+            return AuthorizationResult.Allow("scope bypass (GOD MODE)");
+
         if (operation.Classification == OperationClassification.Passive)
             return AuthorizationResult.Allow("passive operation");
 

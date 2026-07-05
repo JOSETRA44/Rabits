@@ -1,7 +1,11 @@
 {
-  "name": "Auditoria de mi Router",
+  "name": "Auditoria de mi Portafolio y Router",
+  "startsAt": "2026-07-04T00:00:00Z",
+  "endsAt": "2026-07-31T23:59:59Z",
+  "maxRequestsPerSecond": 10,
   "maxClassification": "Intrusive",
   "rules": [
-    { "type": "Cidr", "pattern": "192.168.0.1" }
+    { "type": "Cidr",   "pattern": "192.168.0.1/32" },
+    { "type": "Domain", "pattern": "josetra44.github.io" }
   ]
 }

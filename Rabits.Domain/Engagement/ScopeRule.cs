@@ -71,4 +71,30 @@ public sealed record ScopeRule(TargetType Type, string Pattern)
     public static ScopeRule Domain(string domain) => new(TargetType.Domain, domain);
     public static ScopeRule Ssid(string ssid) => new(TargetType.Ssid, ssid);
     public static ScopeRule Bssid(string bssid) => new(TargetType.Bssid, bssid);
+
+    /// <summary>
+    /// Infers the rule type from a free-form target (used when an operator authorizes a target
+    /// conversationally): CIDR/IP → Cidr, MAC → Bssid, hostname/domain → Domain, otherwise SSID.
+    /// </summary>
+    public static ScopeRule ForTarget(string target)
+    {
+        var value = target.Trim();
+        if (value.Length == 0) return Ssid("*");
+
+        if (value.Contains('/') && Subnet.TryParse(value, out _)) return Cidr(value);
+        if (IPAddress.TryParse(value, out _)) return Cidr(value);        // bare IP → host route
+        if (MacAddress.TryParse(value, out _)) return Bssid(value);
+        if (LooksLikeDomain(value)) return Domain(value);
+        return Ssid(value);
+    }
+
+    private static bool LooksLikeDomain(string value)
+    {
+        var host = value.StartsWith("*.", StringComparison.Ordinal) ? value[2..] : value;
+        if (!host.Contains('.')) return false;
+        foreach (var c in host)
+            if (!(char.IsLetterOrDigit(c) || c is '.' or '-' or '_')) return false;
+        var lastLabel = host[(host.LastIndexOf('.') + 1)..];
+        return lastLabel.Length >= 2 && lastLabel.All(char.IsLetter);
+    }
 }

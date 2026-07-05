@@ -22,7 +22,27 @@ internal sealed class FixedClock : IClock
 internal sealed class FakeScopePolicy : IScopePolicy
 {
     public FakeScopePolicy(EngagementScope? scope) => Current = scope;
-    public EngagementScope? Current { get; }
+    public EngagementScope? Current { get; private set; }
+
+    public EngagementScope Authorize(ScopeRule rule, OperationClassification? raiseTo = null)
+    {
+        var scope = Current ?? new EngagementScope { Name = "test", MaxClassification = OperationClassification.Active };
+        scope = scope.WithRule(rule);
+        if (raiseTo is { } c && c > scope.MaxClassification) scope = scope.WithMaxClassification(c);
+        Current = scope;
+        return scope;
+    }
+
+    public bool Revoke(string pattern)
+    {
+        if (Current is null) return false;
+        var updated = Current.WithoutRule(pattern);
+        var changed = updated.Rules.Count != Current.Rules.Count;
+        Current = updated;
+        return changed;
+    }
+
+    public void Reload() { }
 }
 
 internal sealed class StubWirelessScanner : IWirelessScanner

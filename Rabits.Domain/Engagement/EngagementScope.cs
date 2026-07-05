@@ -27,6 +27,30 @@ public sealed class EngagementScope
     public bool IsWithinWindow(DateTimeOffset now)
         => (StartsAt is null || now >= StartsAt) && (EndsAt is null || now <= EndsAt);
 
+    public bool HasRule(ScopeRule rule)
+        => Rules.Any(r => r.Type == rule.Type && string.Equals(r.Pattern, rule.Pattern, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Returns a copy with <paramref name="rule"/> added (no-op if already present).</summary>
+    public EngagementScope WithRule(ScopeRule rule)
+        => HasRule(rule) ? this : Copy(Rules.Append(rule).ToList());
+
+    /// <summary>Returns a copy without any rule whose pattern matches (case-insensitive).</summary>
+    public EngagementScope WithoutRule(string pattern)
+        => Copy(Rules.Where(r => !string.Equals(r.Pattern, pattern, StringComparison.OrdinalIgnoreCase)).ToList());
+
+    public EngagementScope WithMaxClassification(OperationClassification classification)
+        => Copy(Rules, classification);
+
+    private EngagementScope Copy(IReadOnlyList<ScopeRule> rules, OperationClassification? max = null) => new()
+    {
+        Name = Name,
+        Rules = rules,
+        StartsAt = StartsAt,
+        EndsAt = EndsAt,
+        MaxRequestsPerSecond = MaxRequestsPerSecond,
+        MaxClassification = max ?? MaxClassification,
+    };
+
     /// <summary>
     /// Pure authorization decision. Passive operations are always allowed. Active/Intrusive
     /// operations require an open window, a permitted classification, and a matching target rule.

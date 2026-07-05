@@ -20,6 +20,7 @@ services.AddRabitsEngine(options =>
     if (Env("RABITS_SCOPE") is { Length: > 0 } scope) options.ScopeFilePath = scope;
     if (Env("RABITS_AUDIT") is { Length: > 0 } audit) options.AuditLogPath = audit;
     if (Env("RABITS_SIMULATE") == "1") options.ForceSimulatedCapture = true;
+    if (Env("RABITS_GOD_MODE") == "1") options.BypassScope = true;
 });
 
 services.AddSingleton<McpServer>();

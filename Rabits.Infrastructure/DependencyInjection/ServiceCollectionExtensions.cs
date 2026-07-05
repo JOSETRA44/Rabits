@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
             new FileAuditLog(options.AuditLogPath, sp.GetRequiredService<IClock>()));
 
         // The hard authorization gate every use case flows through.
+        services.AddSingleton(new AuthorizationOptions { BypassScope = options.BypassScope });
         services.AddSingleton<IAuthorizationGuard, AuthorizationGuard>();
 
         // Capability adapters.

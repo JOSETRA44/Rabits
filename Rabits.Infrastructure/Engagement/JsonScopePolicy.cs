@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Rabits.Application.Abstractions;
 using Rabits.Domain.Engagement;
@@ -8,70 +6,112 @@ using Rabits.Domain.Operations;
 namespace Rabits.Infrastructure.Engagement;
 
 /// <summary>
-/// Loads an <see cref="EngagementScope"/> from a JSON file once at startup. When the file is
-/// missing or invalid, <see cref="Current"/> is null and the gate denies all active operations.
+/// File-backed engagement scope that stays live during a session. It hot-reloads on external edits
+/// (checks the file's last-write time on every access) and supports in-session authorization that is
+/// persisted back to disk. Because the authorization gate reads <see cref="Current"/> on every
+/// operation, an <see cref="Authorize"/> call takes effect immediately — no process restart.
 /// </summary>
 public sealed class JsonScopePolicy : IScopePolicy
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() },
-    };
+    private readonly string _path;
+    private readonly ILogger<JsonScopePolicy> _logger;
+    private readonly object _lock = new();
 
-    public EngagementScope? Current { get; }
+    private EngagementScope? _current;
+    private DateTime _loadedWriteTimeUtc = DateTime.MinValue;
 
     public JsonScopePolicy(string scopeFilePath, ILogger<JsonScopePolicy> logger)
     {
-        if (!File.Exists(scopeFilePath))
-        {
-            logger.LogWarning("No engagement scope at '{Path}'. Active operations are disabled.", scopeFilePath);
-            return;
-        }
+        _path = scopeFilePath;
+        _logger = logger;
+        lock (_lock) ReloadIfChanged(force: true);
+    }
 
+    public EngagementScope? Current
+    {
+        get { lock (_lock) { ReloadIfChanged(); return _current; } }
+    }
+
+    public EngagementScope Authorize(ScopeRule rule, OperationClassification? raiseTo = null)
+    {
+        lock (_lock)
+        {
+            ReloadIfChanged();
+
+            var scope = _current ?? new EngagementScope
+            {
+                Name = "Ad-hoc session",
+                MaxClassification = OperationClassification.Active,
+            };
+
+            scope = scope.WithRule(rule);
+            if (raiseTo is { } classification && classification > scope.MaxClassification)
+                scope = scope.WithMaxClassification(classification);
+
+            _current = scope;
+            Persist();
+            _logger.LogInformation("Authorized {Type} '{Pattern}' (scope now {Count} rule(s), max {Max}).",
+                rule.Type, rule.Pattern, scope.Rules.Count, scope.MaxClassification);
+            return scope;
+        }
+    }
+
+    public bool Revoke(string pattern)
+    {
+        lock (_lock)
+        {
+            ReloadIfChanged();
+            if (_current is null) return false;
+
+            var updated = _current.WithoutRule(pattern);
+            if (updated.Rules.Count == _current.Rules.Count) return false;
+
+            _current = updated;
+            Persist();
+            return true;
+        }
+    }
+
+    public void Reload()
+    {
+        lock (_lock) ReloadIfChanged(force: true);
+    }
+
+    private void ReloadIfChanged(bool force = false)
+    {
         try
         {
-            var dto = JsonSerializer.Deserialize<ScopeFileDto>(File.ReadAllText(scopeFilePath), JsonOptions);
-            if (dto is null || string.IsNullOrWhiteSpace(dto.Name))
+            if (!File.Exists(_path))
             {
-                logger.LogError("Engagement scope at '{Path}' is empty or missing a name.", scopeFilePath);
+                if (force && _current is null)
+                    _logger.LogWarning("No engagement scope at '{Path}'. Active operations are disabled until authorized.", _path);
                 return;
             }
 
-            Current = new EngagementScope
-            {
-                Name = dto.Name,
-                StartsAt = dto.StartsAt,
-                EndsAt = dto.EndsAt,
-                MaxRequestsPerSecond = dto.MaxRequestsPerSecond,
-                MaxClassification = dto.MaxClassification,
-                Rules = (dto.Rules ?? new List<ScopeRuleDto>())
-                    .Select(r => new ScopeRule(r.Type, r.Pattern))
-                    .ToList(),
-            };
+            var writeTime = File.GetLastWriteTimeUtc(_path);
+            if (!force && writeTime == _loadedWriteTimeUtc) return;
 
-            logger.LogInformation("Loaded engagement scope '{Name}' with {Count} rule(s).",
-                Current.Name, Current.Rules.Count);
+            _current = ScopeFileSerializer.Read(_path);
+            _loadedWriteTimeUtc = writeTime;
+            if (_current is not null)
+                _logger.LogInformation("Loaded engagement scope '{Name}' ({Count} rule(s)).", _current.Name, _current.Rules.Count);
         }
-        catch (JsonException ex)
+        catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to parse engagement scope at '{Path}'.", scopeFilePath);
+            _logger.LogError(ex, "Failed to load engagement scope at '{Path}'.", _path);
         }
     }
 
-    private sealed class ScopeFileDto
+    private void Persist()
     {
-        public string Name { get; set; } = string.Empty;
-        public DateTimeOffset? StartsAt { get; set; }
-        public DateTimeOffset? EndsAt { get; set; }
-        public int? MaxRequestsPerSecond { get; set; }
-        public OperationClassification MaxClassification { get; set; } = OperationClassification.Active;
-        public List<ScopeRuleDto>? Rules { get; set; }
-    }
-
-    private sealed class ScopeRuleDto
-    {
-        public TargetType Type { get; set; }
-        public string Pattern { get; set; } = string.Empty;
+        try
+        {
+            ScopeFileSerializer.Write(_path, _current!);
+            _loadedWriteTimeUtc = File.GetLastWriteTimeUtc(_path); // avoid reloading our own write
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to persist engagement scope to '{Path}'.", _path);
+        }
     }
 }
